@@ -15,6 +15,11 @@ import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import IconButton from "@material-ui/core/IconButton";
 import { SwatchesPicker} from 'react-color'
+import FormControl from "@material-ui/core/FormControl";
+import InputLabel from "@material-ui/core/InputLabel";
+import Select from "@material-ui/core/Select";
+import MenuItem from "@material-ui/core/MenuItem";
+import TextField from "@material-ui/core/TextField";
 
 
 const CUBE_LINES = [
@@ -32,115 +37,35 @@ const CUBE_LINES = [
     [4, 5]
 ];
 
-
-
 const CUBE_VERTICES = [
-    [-1, -1, -1],
-    [1, -1, -1],
-    [-1, 1, -1],
-    [1, 1, -1],
-    [-1, -1, 1],
-    [1, -1, 1],
-    [-1, 1, 1],
-    [1, 1, 1]
+    [-1, -1, -1],   //0
+    [1, -1, -1],    //1
+    [-1, 1, -1],    //2
+    [1, 1, -1],     //3
+    [-1, -1, 1],    //4
+    [1, -1, 1],     //5
+    [-1, 1, 1],     //6
+    [1, 1, 1]       //7
 ];
 
-class Cube {
-    constructor(x, y, z,ctx,width,height) {
-        // this.x = (Math.random() - 0.5) * width;
-        // this.y = (Math.random() - 0.5) * width;
-        // this.z = (Math.random() - 0.5) * width;
-
-        // console.log(this.x,this.y,this.z)
-        this.x = 100 ;
-        this.y = 100 ;
-        this.z = -15 ;
+// const CUBE_RECTS = [
+//     [0, 1, 3, 2],
+//     [0, 4, 6, 2],
+//     [1, 5, 7, 3],
+//     [2, 6, 7, 3],
+//     [0, 4, 5, 1],
+//     [4, 5, 7, 6],
+// ];
 
 
-
-        // this.radius = Math.floor(Math.random() * 12 +  10);
-        this.radius = 60
-        this.ctx = ctx
-        this.width = width
-        this.height = height
-
-        // TweenMax.to(this, Math.random() * 20 + 15, {
-        //     x: (Math.random() - 0.5) * (width * 0.5),
-        //     y: (Math.random() - 0.5) * (width * 0.5),
-        //     z: (Math.random() - 0.5) * width,
-        //     repeat: -1,
-        //     yoyo: true,
-        //     ease: Power2.EaseOut,
-        //     delay: Math.random() * -35
-        // });
-
-        console.log('created')
-    }
-    // Do some math to project the 3D position into the 2D canvas
-    project(x, y, z) {
-        const sizeProjection = (this.width * 0.8) / (this.width * 0.8 + z);
-        const xProject = (x * sizeProjection) + (this.width / 2);
-        const yProject = (y * sizeProjection) + (this.height / 2);
-        return {
-            size: sizeProjection,
-            x: xProject,
-            y: yProject
-        }
-    }
-
-    changeRadius(rad){
-        this.radius = rad
-    }
-
-    setNewValues(x,y,z){
-        this.x = x
-        this.z = z
-        this.y = y
-    }
-    // Draw the dot on the canvas
-    drawDot() {
-        // Do not render a cube that is in front of the camera
-        if (this.z < - (this.width * 0.8) + this.radius) {
-            return;
-        }
-        for (let i = 0; i < CUBE_LINES.length; i++) {
-            // console.log(CUBE_LINES[i])
-
-
-            const v1 = {
-                x: this.x + (this.radius * CUBE_VERTICES[CUBE_LINES[i][0]][0]),
-                y: this.y + (this.radius * CUBE_VERTICES[CUBE_LINES[i][0]][1]),
-                z: this.z + (this.radius * CUBE_VERTICES[CUBE_LINES[i][0]][2])
-            };
-            const v2 = {
-                x: this.x + (this.radius * CUBE_VERTICES[CUBE_LINES[i][1]][0]),
-                y: this.y + (this.radius * CUBE_VERTICES[CUBE_LINES[i][1]][1]),
-                z: this.z + (this.radius * CUBE_VERTICES[CUBE_LINES[i][1]][2])
-            };
-
-            // // console.log(this.x)
-            //
-            // console.log(this.radius)
-            // console.log(CUBE_VERTICES[CUBE_LINES[i][1]][0])
-            //
-
-            const v1Project = this.project(v1.x, v1.y, v1.z);
-            const v2Project = this.project(v2.x, v2.y, v2.z);
-
-
-            // const v1Project = this.project(this.x, this.y, this.z);
-            // const v2Project = this.project(this.x, this.y, this.z);
-
-            // console.log(v1Project,v2Project)
-            this.ctx.beginPath();
-            this.ctx.moveTo(v1Project.x, v1Project.y);
-            this.ctx.lineTo(v2Project.x, v2Project.y);
-            this.ctx.strokeStyle = 'blue';
-            this.ctx.stroke();
-        }
-        // ctx.globalAlpha = Math.abs(this.z / (width * 0.5));
-    }
-}
+const CUBE_RECTS = [
+    [0, 1, 3, 2],
+    [1, 5, 7, 3],
+    [5, 4, 6, 7],
+    [4, 0, 2, 6],
+    [3, 7, 6, 2],
+    [1, 5, 4, 0],
+];
 
 
 const TRIANGLE_LINES = [
@@ -152,19 +77,14 @@ const TRIANGLE_LINES = [
     [2, 3]
 ];
 
-
-
 const TRIANGLE_VERTICES = [
     [-1,-1,-2],
     [1,-1,-1],
     [0,0,3],
     [0,1,-1],
-
 ];
 
-
-
-class Triangle {
+class Figures {
     constructor(x, y, z,ctx,width,height) {
         // this.x = (Math.random() - 0.5) * width;
         // this.y = (Math.random() - 0.5) * width;
@@ -218,58 +138,228 @@ class Triangle {
             y: yProject
         }
     }
+
+
     // Draw the dot on the canvas
-    drawDot() {
+    drawDot(TRIANGLE_VERTICES,TRIANGLE_LINES,CUBE_VERTICES,CUBE_LINES) {
         // Do not render a cube that is in front of the camera
         if (this.z < - (this.width * 0.8) + this.radius) {
             return;
         }
 
-
-
         for (let i = 0; i < TRIANGLE_LINES.length; i++) {
+            const v1 = {
+                x: this.x + (this.radius * TRIANGLE_VERTICES[TRIANGLE_LINES[i][0]][0]),
+                y: this.y + (this.radius * TRIANGLE_VERTICES[TRIANGLE_LINES[i][0]][1]),
+                z: this.z + (this.radius * TRIANGLE_VERTICES[TRIANGLE_LINES[i][0]][2])
+            };
 
-
-                const v1 = {
-                    x: this.x + (this.radius * TRIANGLE_VERTICES[TRIANGLE_LINES[i][0]][0]),
-                    y: this.y + (this.radius * TRIANGLE_VERTICES[TRIANGLE_LINES[i][0]][1]),
-                    z: this.z + (this.radius * TRIANGLE_VERTICES[TRIANGLE_LINES[i][0]][2])
-                };
-
-
-
-                const v2 = {
-                    x: this.x + (this.radius * TRIANGLE_VERTICES[TRIANGLE_LINES[i][1]][0]),
-                    y: this.y + (this.radius * TRIANGLE_VERTICES[TRIANGLE_LINES[i][1]][1]),
-                    z: this.z + (this.radius * TRIANGLE_VERTICES[TRIANGLE_LINES[i][1]][2])
-                };
-
-
-            // console.log(this.x)
-
+            const v2 = {
+                x: this.x + (this.radius * TRIANGLE_VERTICES[TRIANGLE_LINES[i][1]][0]),
+                y: this.y + (this.radius * TRIANGLE_VERTICES[TRIANGLE_LINES[i][1]][1]),
+                z: this.z + (this.radius * TRIANGLE_VERTICES[TRIANGLE_LINES[i][1]][2])
+            };
 
             const v1Project = this.project(v1.x, v1.y, v1.z);
             const v2Project = this.project(v2.x, v2.y, v2.z);
-
-
-            // const v1Project = this.project(this.x, this.y, this.z);
-            // const v2Project = this.project(this.x, this.y, this.z);
-
-            // console.log(v1Project,v2Project)
             this.ctx.beginPath();
             this.ctx.moveTo(v1Project.x, v1Project.y);
             this.ctx.lineTo(v2Project.x, v2Project.y);
             this.ctx.strokeStyle = 'red';
-            // canvas.stroke();
-            // this.ctx.fillStyle ='blue';
+            this.ctx.stroke();
+        }
+
+        if (this.z < - (this.width * 0.8) + this.radius) {
+            return;
+        }
+
+
+        for (let i = 0; i < CUBE_LINES.length; i++) {
+            const v1 = {
+                x: this.x + (this.radius * CUBE_VERTICES[CUBE_LINES[i][0]][0]) + 50,
+                y: this.y + (this.radius * CUBE_VERTICES[CUBE_LINES[i][0]][1]) + 50,
+                z: this.z + (this.radius * CUBE_VERTICES[CUBE_LINES[i][0]][2]) + 50
+            };
+            const v2 = {
+                x: this.x + (this.radius * CUBE_VERTICES[CUBE_LINES[i][1]][0]) + 50,
+                y: this.y + (this.radius * CUBE_VERTICES[CUBE_LINES[i][1]][1]) + 50,
+                z: this.z + (this.radius * CUBE_VERTICES[CUBE_LINES[i][1]][2]) + 50
+            };
+            const v1Project = this.project(v1.x, v1.y, v1.z);
+            const v2Project = this.project(v2.x, v2.y, v2.z);
+            this.ctx.beginPath();
+            this.ctx.moveTo(v1Project.x, v1Project.y);
+            this.ctx.lineTo(v2Project.x, v2Project.y);
+            this.ctx.strokeStyle = 'blue';
+            this.ctx.stroke();
+        }
+
+    }
+
+    //for rectangles with color
+    draw(CUBE_VERTICES,CUBE_LINES,CUBE_RECTS){
+
+        if (this.z < - (this.width * 0.8) + this.radius) {
+            return;
+        }
+
+
+        let randomColor = '#000000'
+        for (let i = 0; i < CUBE_RECTS.length; i++) {
+
+
+            // randomColor = Math.floor(Math.random()*16777215).toString(16);
+
+            randomColor = "00FFFF"
+
+            let v1 = {
+                x: this.x + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][0]][0]),
+                y: this.y + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][0]][1]),
+                z: this.z + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][0]][2])
+            };
+            let v2 = {
+                x: this.x + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][1]][0]),
+                y: this.y + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][1]][1]),
+                z: this.z + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][1]][2])
+            };
+
+            this.ctx.beginPath();
+            let v1Project = this.project(v1.x, v1.y, v1.z);
+            let v2Project = this.project(v2.x, v2.y, v2.z);
+
+            // this.ctx.moveTo(v1Project.x, v1Project.y);
+            this.ctx.lineTo(v2Project.x, v2Project.y);
+
+            //
+
+
+            v1 = {
+                x: this.x + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][1]][0]),
+                y: this.y + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][1]][1]),
+                z: this.z + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][1]][2])
+            };
+            v2 = {
+                x: this.x + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][2]][0]),
+                y: this.y + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][2]][1]),
+                z: this.z + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][2]][2])
+            };
+
+            v1Project = this.project(v1.x, v1.y, v1.z);
+            v2Project = this.project(v2.x, v2.y, v2.z);
+
+            // this.ctx.moveTo(v1Project.x, v1Project.y);
+            this.ctx.lineTo(v2Project.x, v2Project.y);
+
+
+            v1 = {
+                x: this.x + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][2]][0]),
+                y: this.y + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][2]][1]),
+                z: this.z + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][2]][2])
+            };
+            v2 = {
+                x: this.x + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][3]][0]),
+                y: this.y + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][3]][1]),
+                z: this.z + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][3]][2])
+            };
+
+            v1Project = this.project(v1.x, v1.y, v1.z);
+            v2Project = this.project(v2.x, v2.y, v2.z);
+
+            // this.ctx.moveTo(v1Project.x, v1Project.y);
+            this.ctx.lineTo(v2Project.x, v2Project.y);
+
+            v1 = {
+                x: this.x + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][3]][0]),
+                y: this.y + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][3]][1]),
+                z: this.z + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][3]][2])
+            };
+            v2 = {
+                x: this.x + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][0]][0]),
+                y: this.y + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][0]][1]),
+                z: this.z + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][0]][2])
+            };
+
+            v1Project = this.project(v1.x, v1.y, v1.z);
+            v2Project = this.project(v2.x, v2.y, v2.z);
+
+            // this.ctx.moveTo(v1Project.x, v1Project.y);
+            this.ctx.lineTo(v2Project.x, v2Project.y);
+
+            this.ctx.closePath();
+
+
+            this.ctx.strokeStyle = "#" + randomColor;
+            this.ctx.stroke();
+            this.ctx.fillStyle = "#" + randomColor;
+            this.ctx.fill()
+
+
+
+        }
+
+        return;
+
+
+        for (let i = 0; i < CUBE_LINES.length; i++) {
+            // console.log(CUBE_LINES[i])
+
+
+            const v1 = {
+                x: this.x + (this.radius * CUBE_VERTICES[CUBE_LINES[i][0]][0]),
+                y: this.y + (this.radius * CUBE_VERTICES[CUBE_LINES[i][0]][1]),
+                z: this.z + (this.radius * CUBE_VERTICES[CUBE_LINES[i][0]][2])
+            };
+            const v2 = {
+                x: this.x + (this.radius * CUBE_VERTICES[CUBE_LINES[i][1]][0]),
+                y: this.y + (this.radius * CUBE_VERTICES[CUBE_LINES[i][1]][1]),
+                z: this.z + (this.radius * CUBE_VERTICES[CUBE_LINES[i][1]][2])
+            };
+
+            const v1Project = this.project(v1.x, v1.y, v1.z);
+            const v2Project = this.project(v2.x, v2.y, v2.z);
+
+            this.ctx.beginPath();
+            this.ctx.moveTo(v1Project.x, v1Project.y);
+            this.ctx.lineTo(v2Project.x, v2Project.y);
+            this.ctx.strokeStyle = 'blue';
             this.ctx.stroke();
         }
         // ctx.globalAlpha = Math.abs(this.z / (width * 0.5));
     }
+
+
+    findCenterPoint = (CUBE_VERTICES,TRIANGLE_VERTICES) => {
+        let maxX= 0,minX= 999999,maxY= 0,minY = 999999,maxZ= 0,minZ = 999999
+        CUBE_VERTICES.map(one => {
+
+            one[0] > maxX ? maxX =  one[0]:maxX = maxX
+            one[0] > maxY ? maxY =  one[0]:maxY = maxY
+            one[0] > maxZ ? maxZ =  one[0]:maxZ = maxZ
+
+
+            one[0] < minX ? minX =  one[0]:minX = minX
+            one[0] < minY ? minY =  one[0]:minY = minY
+            one[0] < minZ ? minZ =  one[0]:minZ = minZ
+
+        })
+        TRIANGLE_VERTICES.map(one => {
+            one[0] > maxX ? maxX =  one[0]:maxX = maxX
+            one[0] > maxY ? maxY =  one[0]:maxY = maxY
+            one[0] > maxZ ? maxZ =  one[0]:maxZ = maxZ
+
+
+            one[0] < minX ? minX =  one[0]:minX = minX
+            one[0] < minY ? minY =  one[0]:minY = minY
+            one[0] < minZ ? minZ =  one[0]:minZ = minZ
+        })
+        let centerX = 0
+        let centerY = 0
+
+
+        return {x:centerX,y:centerY,maxX:maxX,maxY:maxY,maxZ:maxZ,minX:minX,minY:minY,minZ:minZ}
+    }
+
 }
-
-
-
 
 class MyApp extends React.Component{
     constructor(props) {
@@ -308,7 +398,46 @@ class MyApp extends React.Component{
             PROJECTION_CENTER_Y : 0, // Y center of the canvas HTML
             FIELD_OF_VIEW : 0,
             dots:[],
-            dotsTri:[]
+            dotsTri:[],
+            CUBE_LINES:[  [0, 1],
+                [1, 3],
+                [3, 2],
+                [2, 0],
+                [2, 6],
+                [3, 7],
+                [0, 4],
+                [1, 5],
+                [6, 7],
+                [6, 4],
+                [7, 5],
+                [4, 5]],
+            CUBE_VERTICES : [
+                [-1, -1, -1],
+                [1, -1, -1],
+                [-1, 1, -1],
+                [1, 1, -1],
+                [-1, -1, 1],
+                [1, -1, 1],
+                [-1, 1, 1],
+                [1, 1, 1]
+            ],
+            TRIANGLE_LINES : [
+                [0, 1],
+                [1, 2],
+                [2, 0],
+                [0, 3],
+                [1, 3],
+                [2, 3]
+            ],
+            TRIANGLE_VERTICES : [
+                [-1,-1,-2],
+                [1,-1,-1],
+                [0,0,2],
+                [0,1,-1],
+            ],
+            dotsFig:[],
+            spinMode:'x',
+            spinAngle:0
         };
     }
 
@@ -330,20 +459,21 @@ class MyApp extends React.Component{
         // console.log(canvas.height)
         // canvas.width = canvas.clientWidth;
         // canvas.height = canvas.clientHeight;
-// Store the 2D context
+        // Store the 2D context
         let ctx = this.refs.canvas.getContext('2d')
 
 
         // Create a new dot based on the amount needed
         //constructor(x, y, z,ctx,width,height) {
 
-        for (let i = 0; i < 1; i++) {
-            this.state.dots.push(new Cube(20,20,100,ctx,canvas.width,canvas.height));
-        }
+        // for (let i = 0; i < 1; i++) {
+        //     this.state.dots.push(new Cube(20,20,100,ctx,canvas.width,canvas.height));
+        // }
 
         for (let i = 0; i < 1; i++) {
-            this.state.dotsTri.push(new Triangle(100,100,200,ctx,canvas.width,canvas.height));
+            this.state.dotsFig.push(new  Figures(100,100,200,ctx,canvas.width,canvas.height));
         }
+
 
     }
 
@@ -396,8 +526,9 @@ class MyApp extends React.Component{
 
     //uploading and parsing the file
     showFile = async (e) => {
+        console.log('here')
         e.preventDefault()
-        this.clearCanvas()
+        // this.clearCanvas()
         this.setState({errorText:''})
         try{
             const reader = new FileReader()
@@ -406,63 +537,14 @@ class MyApp extends React.Component{
                 // console.log(JSON.parse(text))
                 let data = JSON.parse(text)
 
-                for (let line = 0; line < data.lines.length; line++) {
-                    // this.normalize()
-                    let oneLine = {
-                        x: data.lines[line].from.x,
-                        y: data.lines[line].from.y,
-                        z: data.lines[line].from.z,
-                        x1: data.lines[line].to.x,
-                        y1: data.lines[line].to.y,
-                        z1: data.lines[line].from.z
-                    }
+                console.log(data)
 
-                    // if(isNaN(x) || isNaN(x1) || isNaN(y) || isNaN(y1)){
-                    //     this.setState({errorText:'Error reading rectangles, fix the input file'})
-                    //     this.clearCanvas()
-                    //
-                    //     return
-                    // }
-                    this.state.lines.push(oneLine)
-
-                }
-
-                for (let i = 0; i < data.rectangles.length; i++) {
-
-                    let rectangle = {
-                        x: data.rectangles[i].one.x,
-                        y: data.rectangles[i].one.y,
-                        z: data.rectangles[i].one.z,
-
-                        x1: data.rectangles[i].two.x,
-                        y1: data.rectangles[i].two.y,
-                        z1: data.rectangles[i].two.z,
-
-                        x2: data.rectangles[i].three.x,
-                        y2: data.rectangles[i].three.y,
-                        z2: data.rectangles[i].three.z,
-
-
-                        x3: data.rectangles[i].four.x,
-                        y3: data.rectangles[i].four.y,
-                        z3: data.rectangles[i].four.z,
-
-                        color: data.rectangles[i].color
-                    }
-
-                    // if(isNaN(x) || isNaN(x1) || isNaN(x2)|| isNaN(x3)|| isNaN(y) || isNaN(y1) || isNaN(y2) || isNaN(y3)){
-                    //     this.setState({errorText:'Error reading rectangles, fix the input file'})
-                    //     this.clearCanvas()
-                    //     return
-                    // }
-                    this.state.rectangles.push(rectangle)
-
-                }
-
-
+                this.setState({TRIANGLE_VERTICES:data.triangle.vertices})
+                this.setState({TRIANGLE_LINES:data.triangle.lines})
             }
         }
         catch (e) {
+            console.log(e)
 
         }
     }
@@ -472,15 +554,34 @@ class MyApp extends React.Component{
         let x = e.clientX;     // Get the horizontal coordinate
         let y = e.clientY;     // Get the vertical coordinate
         let coor = "X coords: " + x + ", Y coords: " + y;
-        console.log(x - this.state.canvasCoord.x ,y - this.state.canvasCoord.y)
+        // console.log(x - this.state.canvasCoord.x ,y - this.state.canvasCoord.y)
 
         x = x - this.state.canvasCoord.x - 700
         y = y - this.state.canvasCoord.y - 350
 
-        this.state.dots[0].setNewValues(x,y,0)
-        this.state.dotsTri[0].setNewValues(x+30,y+30,0)
+        // this.state.dots[0].setNewValues(x,y,0)
+
+        // this.state.dots.map(one => {
+        //     one.setNewValues(x,y,one.z)
+        //
+        // })
+        //
+        // this.state.dotsTri.map(one => {
+        //
+        //     one.setNewValues(x+200,y,one.z)
+        //
+        // })
+
+        this.state.dotsFig.map(one => {
+
+            one.setNewValues(x,y,one.z)
+
+        })
+
+
+        // this.state.dotsTri[0].setNewValues(x+30,y+30,0)
         this.clearCanvas()
-        console.log(this.state.dots[0])
+        // console.log(this.state.dots[0])
         this.forceUpdate()
 
         if(this.state.mode === 'move'){
@@ -516,26 +617,186 @@ class MyApp extends React.Component{
             factor = 0.9
         }
 
-        console.log(this.state.dots[0].radius)
+        // console.log(this.state.dots[0].radius)
 
-        this.state.dots[0].radius = this.state.dots[0].radius * factor
+        // this.state.dots[0].radius = this.state.dots[0].radius * factor
+        //
+        // this.state.dotsTri[0].radius = this.state.dots[0].radius * factor
 
-        this.state.dotsTri[0].radius = this.state.dots[0].radius * factor
+        this.state.dotsFig[0].radius = this.state.dotsFig[0].radius * factor
 
         this.forceUpdate()
     }
+
+    //spinning the figure by finding the center point and then performing trigonometric computation on each point in the drawing
+    spinFigure = (mode,explicit_angle,axis) => {
+        let angle = 0
+        explicit_angle = this.state.spinAngle
+        if(mode === 'right'){
+            if(explicit_angle !== 0)
+                angle = explicit_angle
+            else
+                angle = 5
+        }
+        if(mode === 'left'){
+            if(explicit_angle !== 0)
+                angle = explicit_angle
+            else
+                angle = -5
+        }
+
+        let asix1 = 0
+        let asix2 = 1
+
+        axis = this.state.spinMode
+
+        //x = z
+        //y = x
+        //z = y
+
+        switch (axis) {
+            case 'z':
+                asix1 = 0
+                asix2 = 1
+                break
+            case 'x':
+                asix1 = 1
+                asix2 = 2
+                break
+
+            case 'y':
+                asix1 = 2
+                asix2 = 0
+                break
+            default:
+                asix1 = 0
+                asix2 = 1
+                break
+
+
+        }
+
+        let newAngle = angle * Math.PI/180
+
+        // let data = this.findCenterPoint()
+
+        let data = {x:0,y:0}
+        this.clearCanvas()
+
+        let centerX = data.x
+        let centerY = data.y
+
+        let x = 0,y = 0
+        this.state.CUBE_VERTICES.map(one => {
+            x = one[asix1]
+            y = one[asix2]
+            // console.log(centerX + (x-centerX)*Math.cos(newAngle) - (y-centerY)*Math.sin(newAngle))
+
+
+
+            one[asix1] = centerX + (x-centerX)*Math.cos(newAngle) - (y-centerY)*Math.sin(newAngle);
+            one[asix2] = centerY + (x-centerX)*Math.sin(newAngle) + (y-centerY)*Math.cos(newAngle)
+
+            // console.log(one)
+
+            // one.x1 = centerX + (x-centerX)*Math.cos(newAngle) - (y-centerY)*Math.sin(newAngle);
+            // one.y1 =  centerY + (x-centerX)*Math.sin(newAngle) + (y-centerY)*Math.cos(newAngle)
+        })
+
+        x = 0
+        y = 0
+        this.state.TRIANGLE_VERTICES.map(one => {
+            x = one[asix1]
+            y = one[asix2]
+            // console.log(centerX + (x-centerX)*Math.cos(newAngle) - (y-centerY)*Math.sin(newAngle))
+                // 0,1 - x, 1,2 - y, 2,1 -z
+
+
+            one[asix1] = centerX + (x-centerX)*Math.cos(newAngle) - (y-centerY)*Math.sin(newAngle);
+            one[asix2] = centerY + (x-centerX)*Math.sin(newAngle) + (y-centerY)*Math.cos(newAngle)
+
+            // console.log(one)
+
+            // one.x1 = centerX + (x-centerX)*Math.cos(newAngle) - (y-centerY)*Math.sin(newAngle);
+            // one.y1 =  centerY + (x-centerX)*Math.sin(newAngle) + (y-centerY)*Math.cos(newAngle)
+        })
+
+    this.forceUpdate()
+
+    }
+
+    mirrorImageLeft = () => {
+        this.clearCanvas()
+
+        let flip = this.findCenterPoint()
+
+        flip = {}
+
+        this.state.dotsFig.map(one => {
+
+            let flip = one.findCenterPoint()
+
+            console.log(one)
+            if(one.x === flip.minX){} else{one.x  = (flip.minX - one.x ) + flip.minX}
+
+            })
+
+
+        // this.state.TRIANGLE_VERTICES.map(one => {
+        //     if(one[0] === flip.minX){} else{
+        //         one[0] = (flip.minX - one[0]) + flip.minX}
+        //
+        // })
+        // this.state.CUBE_VERTICES.map(one => {
+        //     if(one[0] === flip.minX){} else{one[0] = (flip.minX - one[0]) + flip.minX}
+        // })
+
+
+        this.forceUpdate()
+    }
+
+    // findCenterPoint = () => {
+    //     let maxX= 0,minX= 999999,maxY= 0,minY = 999999,maxZ= 0,minZ = 999999
+    //     this.state.CUBE_VERTICES.map(one => {
+    //
+    //         one[0] > maxX ? maxX =  one[0]:maxX = maxX
+    //         one[0] > maxY ? maxY =  one[0]:maxY = maxY
+    //         one[0] > maxZ ? maxZ =  one[0]:maxZ = maxZ
+    //
+    //
+    //         one[0] < minX ? minX =  one[0]:minX = minX
+    //         one[0] < minY ? minY =  one[0]:minY = minY
+    //         one[0] < minZ ? minZ =  one[0]:minZ = minZ
+    //
+    //     })
+    //     this.state.TRIANGLE_VERTICES.map(one => {
+    //         one[0] > maxX ? maxX =  one[0]:maxX = maxX
+    //         one[0] > maxY ? maxY =  one[0]:maxY = maxY
+    //         one[0] > maxZ ? maxZ =  one[0]:maxZ = maxZ
+    //
+    //
+    //         one[0] < minX ? minX =  one[0]:minX = minX
+    //         one[0] < minY ? minY =  one[0]:minY = minY
+    //         one[0] < minZ ? minZ =  one[0]:minZ = minZ
+    //     })
+    //     let centerX = 0
+    //     let centerY = 0
+    //
+    //
+    //     return {x:centerX,y:centerY,maxX:maxX,maxY:maxY,maxZ:maxZ,minX:minX,minY:minY,minZ:minZ}
+    // }
+
 
 
 
     //runs every second to redraw the changes on the screen
     render() {
-        for (let i = 0; i < this.state.dots.length; i++) {
-            this.state.dots[i].drawDot();
+
+        for (let i = 0; i < this.state.dotsFig.length; i++) {
+            this.state.dotsFig[i].drawDot(this.state.TRIANGLE_VERTICES,this.state.TRIANGLE_LINES,this.state.CUBE_VERTICES,this.state.CUBE_LINES);
         }
 
-        for (let i = 0; i < this.state.dots.length; i++) {
-            this.state.dotsTri[i].drawDot();
-        }
+
 
         return (
             <div className="App">
@@ -676,20 +937,52 @@ class MyApp extends React.Component{
                         </div> : <div/>}
 
                         {this.state.mode === 'spin'?<div>
+                            <FormControl style={{ margin:10,
+                                minWidth: 120,}}>
+                                <InputLabel id="demo-simple-select-label">Axis</InputLabel>
+                                <Select
+                                    labelId="demo-simple-select-label"
+                                    id="demo-simple-select"
+                                    value={this.state.spinMode}
+                                    onChange={this.handleSelectChange}
+                                >
+                                    <MenuItem value={'x'}>X</MenuItem>
+                                    <MenuItem value={'y'}>Y</MenuItem>
+                                    <MenuItem value={'z'}>Z</MenuItem>
+                                </Select>
+                            </FormControl>
+
                             <Button
-                                style={{margin:10}}
+                                style={{margin:25}}
                                 onClick={() =>
-                                    this.spinFigure('right',0)}
+                                    this.spinFigure('right',0,'x')}
                                 size="small" variant='contained' color="primary">
-                                Right
+                                Spin
                             </Button>
-                            <Button style={{margin:10}} onClick={() =>
-                                this.spinFigure('left',0)}
-                                    size="small"
-                                    variant='contained'
-                                    color="primary">
-                                Left
-                            </Button>
+                            {/*<Button style={{margin:25}} onClick={() =>*/}
+                            {/*    this.spinFigure('left',0,'x')}*/}
+                            {/*        size="small"*/}
+                            {/*        variant='contained'*/}
+                            {/*        color="primary">*/}
+                            {/*    Opposite Direction*/}
+                            {/*</Button>*/}
+
+                            <TextField
+                                style={{margin:10}}
+                                id="standard-number"
+                                label="Custom angle"
+                                type="number"
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
+                                value={this.state.spinAngle}
+                                onChange={(e) => {
+                                    console.log(e.target.value)
+                                this.setState({spinAngle:e.target.value})
+                                }
+                                }
+                            />
+
                         </div> : <div/>}
                         <CardActions>
                         </CardActions>
@@ -697,6 +990,10 @@ class MyApp extends React.Component{
                 </div>
             </div>
         );
+    }
+
+    handleSelectChange = (event) =>{
+        this.setState({spinMode:event.target.value})
     }
 }
 

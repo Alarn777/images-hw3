@@ -611,12 +611,13 @@ class App extends React.Component{
         this.renderOnCanvas()
     }
 
-
     //finding the most left point of the image and then reflecting each coordinate to the - of itself.
     mirrorImageLeft = () => {
         this.clearCanvas()
 
         let flip = this.findCenterPoint()
+
+        flip = {}
         this.state.lines.map(one => {
             if(one.x === flip.minX){} else{one.x = (flip.minX - one.x) + flip.minX}
             if(one.x1 === flip.minX){}else {one.x1 = (flip.minX - one.x1) + flip.minX}
