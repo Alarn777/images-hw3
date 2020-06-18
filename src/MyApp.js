@@ -84,17 +84,24 @@ const TRIANGLE_VERTICES = [
     [0,1,-1],
 ];
 
+
+const TRIANGLE_RECTS = [
+    [0,1,2],
+    [2,3,1],
+    [0,3,2],
+    [0,3,1]
+]
+
 class Figures {
-    constructor(x, y, z,ctx,width,height) {
+    constructor(x, y, z, ctx, width, height) {
         // this.x = (Math.random() - 0.5) * width;
         // this.y = (Math.random() - 0.5) * width;
         // this.z = (Math.random() - 0.5) * width;
 
         // console.log(this.x,this.y,this.z)
-        this.x = -200 ;
-        this.y = 200 ;
-        this.z = -10 ;
-
+        this.x = -200;
+        this.y = 200;
+        this.z = -10;
 
 
         // this.radius = Math.floor(Math.random() * 12 +  10);
@@ -116,14 +123,14 @@ class Figures {
         // console.log('created')
     }
 
-    setNewValues(x,y,z){
+    setNewValues(x, y, z) {
         this.x = x
         this.z = z
         this.y = y
     }
 
 
-    changeRadius(rad){
+    changeRadius(rad) {
         this.radius = rad
     }
 
@@ -140,10 +147,10 @@ class Figures {
     }
 
 
-    // Draw the dot on the canvas
-    drawDot(TRIANGLE_VERTICES,TRIANGLE_LINES,CUBE_VERTICES,CUBE_LINES) {
+    // min the dot on the canvas
+    minDot(TRIANGLE_VERTICES, TRIANGLE_LINES, CUBE_VERTICES, CUBE_LINES) {
         // Do not render a cube that is in front of the camera
-        if (this.z < - (this.width * 0.8) + this.radius) {
+        if (this.z < -(this.width * 0.8) + this.radius) {
             return;
         }
 
@@ -169,7 +176,7 @@ class Figures {
             this.ctx.stroke();
         }
 
-        if (this.z < - (this.width * 0.8) + this.radius) {
+        if (this.z < -(this.width * 0.8) + this.radius) {
             return;
         }
 
@@ -197,20 +204,18 @@ class Figures {
     }
 
     //for rectangles with color
-    draw(CUBE_VERTICES,CUBE_LINES,CUBE_RECTS){
+    drawCube(CUBE_VERTICES, CUBE_RECTS, TRIANGLE_VERTICES, TRIANGLE_RECTS) {
 
-        if (this.z < - (this.width * 0.8) + this.radius) {
+        if (this.z < -(this.width * 0.8) + this.radius) {
             return;
         }
 
 
-        let randomColor = '#000000'
+
+        let colors = ['#ef5350', '#cddc39', '#f57c00', '#00FFFF','#4e342e','#6200ea']
         for (let i = 0; i < CUBE_RECTS.length; i++) {
 
-
-            // randomColor = Math.floor(Math.random()*16777215).toString(16);
-
-            randomColor = "00FFFF"
+            let randomColor = '#000000'
 
             let v1 = {
                 x: this.x + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][0]][0]),
@@ -246,8 +251,6 @@ class Figures {
 
             v1Project = this.project(v1.x, v1.y, v1.z);
             v2Project = this.project(v2.x, v2.y, v2.z);
-
-            // this.ctx.moveTo(v1Project.x, v1Project.y);
             this.ctx.lineTo(v2Project.x, v2Project.y);
 
 
@@ -264,8 +267,6 @@ class Figures {
 
             v1Project = this.project(v1.x, v1.y, v1.z);
             v2Project = this.project(v2.x, v2.y, v2.z);
-
-            // this.ctx.moveTo(v1Project.x, v1Project.y);
             this.ctx.lineTo(v2Project.x, v2Project.y);
 
             v1 = {
@@ -279,6 +280,84 @@ class Figures {
                 z: this.z + (this.radius * CUBE_VERTICES[CUBE_RECTS[i][0]][2])
             };
 
+            // console.log(v1.z)
+
+            v1Project = this.project(v1.x, v1.y, v1.z);
+            v2Project = this.project(v2.x, v2.y, v2.z);
+            this.ctx.lineTo(v2Project.x, v2Project.y);
+
+
+            this.ctx.closePath();
+            this.ctx.strokeStyle = '#FF00FF'
+            this.ctx.stroke();
+            this.ctx.fillStyle = colors[i]
+            this.ctx.fill()
+
+
+        }
+    }
+
+    drawTriangle(CUBE_VERTICES, CUBE_RECTS, TRIANGLE_VERTICES, TRIANGLE_RECTS) {
+
+        if (this.z < -(this.width * 0.8) + this.radius) {
+            return;
+        }
+
+        let colors = ['#FF0000', '#00bcd4', '#9e9e9e', '#ffeb3b']
+
+        for (let i = 0; i < TRIANGLE_RECTS.length; i++) {
+            let randomColor = "008000"
+
+            let v1 = {
+                x: this.x + (this.radius * TRIANGLE_VERTICES[TRIANGLE_RECTS[i][0]][0]),
+                y: this.y + (this.radius * TRIANGLE_VERTICES[TRIANGLE_RECTS[i][0]][1]),
+                z: this.z + (this.radius * TRIANGLE_VERTICES[TRIANGLE_RECTS[i][0]][2])
+            };
+            let v2 = {
+                x: this.x + (this.radius * TRIANGLE_VERTICES[TRIANGLE_RECTS[i][1]][0]),
+                y: this.y + (this.radius * TRIANGLE_VERTICES[TRIANGLE_RECTS[i][1]][1]),
+                z: this.z + (this.radius * TRIANGLE_VERTICES[TRIANGLE_RECTS[i][1]][2])
+            };
+
+            this.ctx.beginPath();
+            let v1Project = this.project(v1.x, v1.y, v1.z);
+            let v2Project = this.project(v2.x, v2.y, v2.z);
+
+            // this.ctx.moveTo(v1Project.x, v1Project.y);
+            this.ctx.lineTo(v2Project.x, v2Project.y);
+
+            //
+
+
+            v1 = {
+                x: this.x + (this.radius * TRIANGLE_VERTICES[TRIANGLE_RECTS[i][1]][0]),
+                y: this.y + (this.radius * TRIANGLE_VERTICES[TRIANGLE_RECTS[i][1]][1]),
+                z: this.z + (this.radius * TRIANGLE_VERTICES[TRIANGLE_RECTS[i][1]][2])
+            };
+            v2 = {
+                x: this.x + (this.radius * TRIANGLE_VERTICES[TRIANGLE_RECTS[i][2]][0]),
+                y: this.y + (this.radius * TRIANGLE_VERTICES[TRIANGLE_RECTS[i][2]][1]),
+                z: this.z + (this.radius * TRIANGLE_VERTICES[TRIANGLE_RECTS[i][2]][2])
+            };
+
+            v1Project = this.project(v1.x, v1.y, v1.z);
+            v2Project = this.project(v2.x, v2.y, v2.z);
+
+            // this.ctx.moveTo(v1Project.x, v1Project.y);
+            this.ctx.lineTo(v2Project.x, v2Project.y);
+
+
+            v1 = {
+                x: this.x + (this.radius * TRIANGLE_VERTICES[TRIANGLE_RECTS[i][2]][0]),
+                y: this.y + (this.radius * TRIANGLE_VERTICES[TRIANGLE_RECTS[i][2]][1]),
+                z: this.z + (this.radius * TRIANGLE_VERTICES[TRIANGLE_RECTS[i][2]][2])
+            };
+            v2 = {
+                x: this.x + (this.radius * TRIANGLE_VERTICES[TRIANGLE_RECTS[i][0]][0]),
+                y: this.y + (this.radius * TRIANGLE_VERTICES[TRIANGLE_RECTS[i][0]][1]),
+                z: this.z + (this.radius * TRIANGLE_VERTICES[TRIANGLE_RECTS[i][0]][2])
+            };
+
             v1Project = this.project(v1.x, v1.y, v1.z);
             v2Project = this.project(v2.x, v2.y, v2.z);
 
@@ -288,41 +367,10 @@ class Figures {
             this.ctx.closePath();
 
 
-            this.ctx.strokeStyle = "#" + randomColor;
+            this.ctx.strokeStyle = "#800000";
             this.ctx.stroke();
-            this.ctx.fillStyle = "#" + randomColor;
+            this.ctx.fillStyle = colors[i];
             this.ctx.fill()
-
-
-
-        }
-
-        return;
-
-
-        for (let i = 0; i < CUBE_LINES.length; i++) {
-            // console.log(CUBE_LINES[i])
-
-
-            const v1 = {
-                x: this.x + (this.radius * CUBE_VERTICES[CUBE_LINES[i][0]][0]),
-                y: this.y + (this.radius * CUBE_VERTICES[CUBE_LINES[i][0]][1]),
-                z: this.z + (this.radius * CUBE_VERTICES[CUBE_LINES[i][0]][2])
-            };
-            const v2 = {
-                x: this.x + (this.radius * CUBE_VERTICES[CUBE_LINES[i][1]][0]),
-                y: this.y + (this.radius * CUBE_VERTICES[CUBE_LINES[i][1]][1]),
-                z: this.z + (this.radius * CUBE_VERTICES[CUBE_LINES[i][1]][2])
-            };
-
-            const v1Project = this.project(v1.x, v1.y, v1.z);
-            const v2Project = this.project(v2.x, v2.y, v2.z);
-
-            this.ctx.beginPath();
-            this.ctx.moveTo(v1Project.x, v1Project.y);
-            this.ctx.lineTo(v2Project.x, v2Project.y);
-            this.ctx.strokeStyle = 'blue';
-            this.ctx.stroke();
         }
         // ctx.globalAlpha = Math.abs(this.z / (width * 0.5));
     }
@@ -432,8 +480,22 @@ class MyApp extends React.Component{
             TRIANGLE_VERTICES : [
                 [-1,-1,-2],
                 [1,-1,-1],
-                [0,0,2],
+                [0,0,1],
                 [0,1,-1],
+            ],
+            CUBE_RECTS : [
+                [0, 1, 3, 2],
+                [1, 5, 7, 3],
+                [5, 4, 6, 7],
+                [4, 0, 2, 6],
+                [3, 7, 6, 2],
+                [1, 5, 4, 0],
+            ],
+            TRIANGLE_RECTS:[
+                [0,1,2],
+                [2,3,1],
+                [0,3,2],
+                [0,3,1]
             ],
             dotsFig:[],
             spinMode:'x',
@@ -487,31 +549,6 @@ class MyApp extends React.Component{
         canvas.stroke();
     }
 
-    //basic line
-    line = (x, y,xEnd,yEnd, canvas) =>{
-        canvas.beginPath();
-        canvas.moveTo(x, y);
-        canvas.lineTo(xEnd , yEnd);
-        canvas.strokeStyle = this.state.color;
-        canvas.stroke();
-    }
-
-
-
-    //rectangle is created from 4 lines rendered one after another and then filled with given color
-    newRectangle = (x, y,x1,y1,x2,y2,x3,y3,color, canvas) =>{
-        canvas.beginPath();
-        canvas.moveTo(x, y);
-        canvas.lineTo(x1 , y1);
-        canvas.lineTo(x2 , y2);
-        canvas.lineTo(x3 , y3);
-        canvas.closePath();
-        canvas.strokeStyle = color;
-        canvas.stroke();
-        // canvas.fillStyle =color;
-        // canvas.fill()
-    }
-
 
     //the canvas is not located in pure 0,0 of the page, thus the starting point of the canvas is added to each value
     normalize = (val,isX) => {
@@ -559,18 +596,6 @@ class MyApp extends React.Component{
         x = x - this.state.canvasCoord.x - 700
         y = y - this.state.canvasCoord.y - 350
 
-        // this.state.dots[0].setNewValues(x,y,0)
-
-        // this.state.dots.map(one => {
-        //     one.setNewValues(x,y,one.z)
-        //
-        // })
-        //
-        // this.state.dotsTri.map(one => {
-        //
-        //     one.setNewValues(x+200,y,one.z)
-        //
-        // })
 
         this.state.dotsFig.map(one => {
 
@@ -579,9 +604,7 @@ class MyApp extends React.Component{
         })
 
 
-        // this.state.dotsTri[0].setNewValues(x+30,y+30,0)
         this.clearCanvas()
-        // console.log(this.state.dots[0])
         this.forceUpdate()
 
         if(this.state.mode === 'move'){
@@ -617,11 +640,6 @@ class MyApp extends React.Component{
             factor = 0.9
         }
 
-        // console.log(this.state.dots[0].radius)
-
-        // this.state.dots[0].radius = this.state.dots[0].radius * factor
-        //
-        // this.state.dotsTri[0].radius = this.state.dots[0].radius * factor
 
         this.state.dotsFig[0].radius = this.state.dotsFig[0].radius * factor
 
@@ -678,7 +696,6 @@ class MyApp extends React.Component{
 
         let newAngle = angle * Math.PI/180
 
-        // let data = this.findCenterPoint()
 
         let data = {x:0,y:0}
         this.clearCanvas()
@@ -690,17 +707,10 @@ class MyApp extends React.Component{
         this.state.CUBE_VERTICES.map(one => {
             x = one[asix1]
             y = one[asix2]
-            // console.log(centerX + (x-centerX)*Math.cos(newAngle) - (y-centerY)*Math.sin(newAngle))
-
-
 
             one[asix1] = centerX + (x-centerX)*Math.cos(newAngle) - (y-centerY)*Math.sin(newAngle);
             one[asix2] = centerY + (x-centerX)*Math.sin(newAngle) + (y-centerY)*Math.cos(newAngle)
 
-            // console.log(one)
-
-            // one.x1 = centerX + (x-centerX)*Math.cos(newAngle) - (y-centerY)*Math.sin(newAngle);
-            // one.y1 =  centerY + (x-centerX)*Math.sin(newAngle) + (y-centerY)*Math.cos(newAngle)
         })
 
         x = 0
@@ -708,17 +718,9 @@ class MyApp extends React.Component{
         this.state.TRIANGLE_VERTICES.map(one => {
             x = one[asix1]
             y = one[asix2]
-            // console.log(centerX + (x-centerX)*Math.cos(newAngle) - (y-centerY)*Math.sin(newAngle))
-                // 0,1 - x, 1,2 - y, 2,1 -z
-
 
             one[asix1] = centerX + (x-centerX)*Math.cos(newAngle) - (y-centerY)*Math.sin(newAngle);
             one[asix2] = centerY + (x-centerX)*Math.sin(newAngle) + (y-centerY)*Math.cos(newAngle)
-
-            // console.log(one)
-
-            // one.x1 = centerX + (x-centerX)*Math.cos(newAngle) - (y-centerY)*Math.sin(newAngle);
-            // one.y1 =  centerY + (x-centerX)*Math.sin(newAngle) + (y-centerY)*Math.cos(newAngle)
         })
 
     this.forceUpdate()
@@ -728,64 +730,15 @@ class MyApp extends React.Component{
     mirrorImageLeft = () => {
         this.clearCanvas()
 
-        let flip = this.findCenterPoint()
-
-        flip = {}
-
         this.state.dotsFig.map(one => {
 
             let flip = one.findCenterPoint()
-
-            console.log(one)
             if(one.x === flip.minX){} else{one.x  = (flip.minX - one.x ) + flip.minX}
 
             })
 
-
-        // this.state.TRIANGLE_VERTICES.map(one => {
-        //     if(one[0] === flip.minX){} else{
-        //         one[0] = (flip.minX - one[0]) + flip.minX}
-        //
-        // })
-        // this.state.CUBE_VERTICES.map(one => {
-        //     if(one[0] === flip.minX){} else{one[0] = (flip.minX - one[0]) + flip.minX}
-        // })
-
-
         this.forceUpdate()
     }
-
-    // findCenterPoint = () => {
-    //     let maxX= 0,minX= 999999,maxY= 0,minY = 999999,maxZ= 0,minZ = 999999
-    //     this.state.CUBE_VERTICES.map(one => {
-    //
-    //         one[0] > maxX ? maxX =  one[0]:maxX = maxX
-    //         one[0] > maxY ? maxY =  one[0]:maxY = maxY
-    //         one[0] > maxZ ? maxZ =  one[0]:maxZ = maxZ
-    //
-    //
-    //         one[0] < minX ? minX =  one[0]:minX = minX
-    //         one[0] < minY ? minY =  one[0]:minY = minY
-    //         one[0] < minZ ? minZ =  one[0]:minZ = minZ
-    //
-    //     })
-    //     this.state.TRIANGLE_VERTICES.map(one => {
-    //         one[0] > maxX ? maxX =  one[0]:maxX = maxX
-    //         one[0] > maxY ? maxY =  one[0]:maxY = maxY
-    //         one[0] > maxZ ? maxZ =  one[0]:maxZ = maxZ
-    //
-    //
-    //         one[0] < minX ? minX =  one[0]:minX = minX
-    //         one[0] < minY ? minY =  one[0]:minY = minY
-    //         one[0] < minZ ? minZ =  one[0]:minZ = minZ
-    //     })
-    //     let centerX = 0
-    //     let centerY = 0
-    //
-    //
-    //     return {x:centerX,y:centerY,maxX:maxX,maxY:maxY,maxZ:maxZ,minX:minX,minY:minY,minZ:minZ}
-    // }
-
 
 
 
@@ -793,7 +746,8 @@ class MyApp extends React.Component{
     render() {
 
         for (let i = 0; i < this.state.dotsFig.length; i++) {
-            this.state.dotsFig[i].drawDot(this.state.TRIANGLE_VERTICES,this.state.TRIANGLE_LINES,this.state.CUBE_VERTICES,this.state.CUBE_LINES);
+            this.state.dotsFig[i].drawCube( this.state.CUBE_VERTICES, this.state.CUBE_RECTS, this.state.TRIANGLE_VERTICES, this.state.TRIANGLE_RECTS);
+            this.state.dotsFig[i].drawTriangle(this.state.CUBE_VERTICES, this.state.CUBE_RECTS, this.state.TRIANGLE_VERTICES, this.state.TRIANGLE_RECTS)
         }
 
 
@@ -851,7 +805,7 @@ class MyApp extends React.Component{
                                 Move
                             </Button>
                             <Button  style={styles.button} disabled={this.state.mode === 'mirror'} onClick={() =>this.setState({mode:'mirror',instruction:'Click on buttons to mirror'})} size="small" variant='contained'>
-                                Mirror
+                                Mirror (not working)
                             </Button>
                             <Button  style={styles.button} disabled={this.state.mode === 'spin'} onClick={() =>this.setState({mode:'spin',instruction:'Click on Right or Left buttons to spin'})} size="small" variant='contained' >
                                 Spin

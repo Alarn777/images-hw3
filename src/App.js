@@ -407,7 +407,7 @@ class App extends React.Component{
     }
 
 
-    //spinning the figure by finding the center point and then performing trigonometric computation on each point in the drawing
+    //spinning the figure by finding the center point and then performing trigonometric computation on each point in the mining
     spinFigure = (mode,explicit_angle) => {
         let angle = 0
         if(mode === 'right'){
@@ -567,7 +567,7 @@ class App extends React.Component{
     }
 
 
-    //finding the center point of the image and calculating offset from it to the point clicked, than moving each point in the drawing by this offset
+    //finding the center point of the image and calculating offset from it to the point clicked, than moving each point in the mining by this offset
     moveImage = (x,y) => {
         let center = this.findCenterPoint()
         let offsetX = x - this.normalize(center.x,true)
@@ -731,7 +731,7 @@ class App extends React.Component{
     }
 
 
-    //drawing each type of figure on the canvas
+    //mining each type of figure on the canvas
     renderOnCanvas = () => {
         this.state.lines.map(one => {
             this.line(one.x,one.y,one.x1,one.y1,this.refs.canvas.getContext('2d'))
@@ -785,7 +785,7 @@ class App extends React.Component{
     }
 
 
-    //runs every second to redraw the changes on the screen
+    //runs every second to remin the changes on the screen
     render() {
         return (
             <div className="App">
@@ -795,7 +795,7 @@ class App extends React.Component{
                             <IconButton edge="start" color="inherit" aria-label="menu">
                             </IconButton>
                             <Typography variant="h6" >
-                                Welcome to Easy-Draw
+                                Welcome to Easy-min
                             </Typography>
                             <Button
                                 variant="contained"
