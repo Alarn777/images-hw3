@@ -7,7 +7,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import App from './App';
 import * as serviceWorker from './serviceWorker';
 import {
     createMuiTheme,
@@ -29,21 +28,19 @@ const theme = createMuiTheme({
         secondary: {
             light: "#ffee58",
             main: "#ffeb3b"
-            // dark: will be calculated from palette.secondary.main,
-            // contrastText: "#ffcc00"
+                // dark: will be calculated from palette.secondary.main,
+                // contrastText: "#ffcc00"
         }
     }
 });
 
-ReactDOM.render(
-    <React.StrictMode>
-            <ThemeProvider theme={theme}>
-                {/*<CookiesProvider>*/}
-                {/*<App />*/}
-                <MyApp />
-                {/*</CookiesProvider>*/}
-            </ThemeProvider>
-    </React.StrictMode>,
+ReactDOM.render( <
+    React.StrictMode >
+    <
+    ThemeProvider theme = { theme } > { /*<CookiesProvider>*/ } { /*<App />*/ } <
+    MyApp / > { /*</CookiesProvider>*/ } <
+    /ThemeProvider> <
+    /React.StrictMode>,
     document.getElementById("root")
 );
 
