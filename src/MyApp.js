@@ -22,7 +22,7 @@ import MenuItem from "@material-ui/core/MenuItem";
 import TextField from "@material-ui/core/TextField";
 
 class Figures {
-  constructor(x, y, z, ctx, width, height) {
+  constructor(x, y, z, ctx, width, height, figures) {
     this.x = x;
     this.y = y;
     this.z = z;
@@ -30,6 +30,7 @@ class Figures {
     this.ctx = ctx;
     this.width = width;
     this.height = height;
+    this.figures = figures;
   }
 
   setNewValues(x, y, z) {
@@ -54,29 +55,43 @@ class Figures {
     };
   }
 
-  draw(vertices, polygons, colors) {
-    if (this.z < -(this.width * 0.8) + this.radius) {
-      return;
-    }
-
-    for (let i = 0; i < polygons.length; i++) {
-      this.ctx.beginPath();
-      for (let j = 0; j < polygons[i].length; j++) {
-        let vertex = {
-          x: this.x + this.radius * vertices[polygons[i][j]][0],
-          y: this.y + this.radius * vertices[polygons[i][j]][1],
-          z: this.z + this.radius * vertices[polygons[i][j]][2],
-        };
-
-        let vProjected = this.perspectiveProject(vertex);
-        this.ctx.lineTo(vProjected.x, vProjected.y);
+  draw() {
+    for (const figure of this.figures) {
+      if (this.z < -(this.width * 0.8) + this.radius) {
+        return;
       }
 
-      this.ctx.closePath();
-      this.ctx.strokeStyle = "#FF00FF";
-      this.ctx.stroke();
-      this.ctx.fillStyle = colors[i];
-      this.ctx.fill();
+      
+
+      for (let i = 0; i < figure.polygons.length; i++) {
+        this.ctx.beginPath();
+        let vertices=[];
+        for (let j = 0; j < figure.polygons[i].length; j++) {
+          vertices.push({
+            x: this.x + this.radius * figure.vertices[figure.polygons[i][j]][0],
+            y: this.y + this.radius * figure.vertices[figure.polygons[i][j]][1],
+            z: this.z + this.radius * figure.vertices[figure.polygons[i][j]][2],
+          });
+        }
+        
+        // vertices.sort((a, b) => {
+        //   if (a.z > b.z) return -1;
+        //   if (a.z < b.z) return 1;
+        //   else return 0;
+        // });
+
+        for (const v of vertices) {
+          let vProjected = this.perspectiveProject(v);
+          this.ctx.lineTo(vProjected.x, vProjected.y);
+        }
+      
+
+        this.ctx.closePath();
+        this.ctx.strokeStyle = "#FF000F";
+        this.ctx.stroke();
+        this.ctx.fillStyle = figure.colors[i];
+        this.ctx.fill();
+      }
     }
   }
 
@@ -161,20 +176,6 @@ class MyApp extends React.Component {
       PROJECTION_CENTER_X: 0, // X center of the canvas HTML
       PROJECTION_CENTER_Y: 0, // Y center of the canvas HTML
       FIELD_OF_VIEW: 0,
-      CUBE_LINES: [
-        [0, 1],
-        [1, 3],
-        [3, 2],
-        [2, 0],
-        [2, 6],
-        [3, 7],
-        [0, 4],
-        [1, 5],
-        [6, 7],
-        [6, 4],
-        [7, 5],
-        [4, 5],
-      ],
       CUBE_VERTICES: [
         [-1, -1, -1],
         [1, -1, -1],
@@ -185,20 +186,6 @@ class MyApp extends React.Component {
         [-1, 1, 1],
         [1, 1, 1],
       ],
-      TRIANGLE_LINES: [
-        [0, 1],
-        [1, 2],
-        [2, 0],
-        [0, 3],
-        [1, 3],
-        [2, 3],
-      ],
-      TRIANGLE_VERTICES: [
-        [-1, -1, -2],
-        [1, -1, -1],
-        [0, 0, 1],
-        [0, 1, -1],
-      ],
       CUBE_POLYGONS: [
         [0, 1, 3, 2],
         [1, 5, 7, 3],
@@ -207,13 +194,19 @@ class MyApp extends React.Component {
         [3, 7, 6, 2],
         [1, 5, 4, 0],
       ],
+      TRIANGLE_VERTICES: [
+        [-1, -1, -2],
+        [1, -1, -1],
+        [0, 0, 1],
+        [0, 1, -1],
+      ],
       TRIANGLE_POLYGONS: [
         [0, 1, 2],
         [2, 3, 1],
         [0, 3, 2],
         [0, 3, 1],
       ],
-      dotsFig: [],
+      figures: [],
       spinMode: "x",
       spinAngle: 0,
     };
@@ -233,12 +226,22 @@ class MyApp extends React.Component {
     // Store the 2D context
     let ctx = this.refs.canvas.getContext("2d");
 
-    // Create a new dot based on the amount needed
-    for (let i = 0; i < 1; i++) {
-      this.state.dotsFig.push(
-        new Figures(100, 100, 200, ctx, canvas.width, canvas.height)
-      );
-    }
+    this.state.figures.push(
+      new Figures(100, 100, 200, ctx, canvas.width, canvas.height, [
+        {
+          vertices: this.state.CUBE_VERTICES,
+          polygons: this.state.CUBE_POLYGONS,
+          colors: [
+            "#673ab7" /*front */,
+            "#ffee58" /*right Yellow*/,
+            "#66bb6a" /*back Green*/,
+            "#2196f3" /*left Blue*/,
+            "#bf360c" /*bottom Red*/,
+            "#9162e4" /*top Purple*/,
+          ],
+        },
+      ])
+    );
   }
 
   //basic point (for tests mainly)
@@ -268,7 +271,7 @@ class MyApp extends React.Component {
         const text = e.target.result;
         let data = JSON.parse(text);
         this.setState({ TRIANGLE_VERTICES: data.triangle.vertices });
-        this.setState({ TRIANGLE_LINES: data.triangle.lines });
+        //this.setState({ TRIANGLE_LINES: data.triangle.lines });
       };
     } catch (e) {
       console.error(e);
@@ -283,7 +286,7 @@ class MyApp extends React.Component {
     x = x - this.state.canvasCoord.x - 700;
     y = y - this.state.canvasCoord.y - 350;
 
-    this.state.dotsFig.map((v) => {
+    this.state.figures.map((v) => {
       v.setNewValues(x, y, v.z);
       return v;
     });
@@ -323,7 +326,7 @@ class MyApp extends React.Component {
       factor = 0.9;
     }
 
-    this.state.dotsFig[0].radius = this.state.dotsFig[0].radius * factor;
+    this.state.figures[0].radius = this.state.figures[0].radius * factor;
 
     this.forceUpdate();
   };
@@ -407,7 +410,7 @@ class MyApp extends React.Component {
   mirrorImageLeft = () => {
     this.clearCanvas();
 
-    this.state.dotsFig.map((one) => {
+    this.state.figures.map((one) => {
       let flip = one.findCenterPoint();
       if (one.x === flip.minX) {
       } else {
@@ -421,17 +424,8 @@ class MyApp extends React.Component {
   //runs every second to redraw the changes on the screen
 
   render() {
-    for (let i = 0; i < this.state.dotsFig.length; i++) {
-      this.state.dotsFig[i].draw(
-        this.state.CUBE_VERTICES,
-        this.state.CUBE_POLYGONS,
-        ["#000000"/*front*/, "#000000"/*right*/ , "#000000"/*back*/, "#000000"/*left*/, "#000000"/*bottom*/, "#9162e4"/*top*/]
-      );
-      // this.state.dotsFig[i].draw(
-      //   this.state.TRIANGLE_VERTICES,
-      //   this.state.TRIANGLE_RECTS,
-      //   ['#FF0000', '#00bcd4', '#9e9e9e', '#ffeb3b']
-      // );
+    for (let i = 0; i < this.state.figures.length; i++) {
+      this.state.figures[i].draw();
     }
 
     return (
