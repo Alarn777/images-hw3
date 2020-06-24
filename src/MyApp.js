@@ -52,6 +52,7 @@ class Figures {
       size: sizeProjection,
       x: xProject,
       y: yProject,
+      z: vertex.z
     };
   }
 
@@ -61,30 +62,32 @@ class Figures {
         return;
       }
 
-      
-
       for (let i = 0; i < figure.polygons.length; i++) {
         this.ctx.beginPath();
-        let vertices=[];
+        let vertices = [];
         for (let j = 0; j < figure.polygons[i].length; j++) {
+          let polygon = figure.polygons[i][j];
           vertices.push({
-            x: this.x + this.radius * figure.vertices[figure.polygons[i][j]][0],
-            y: this.y + this.radius * figure.vertices[figure.polygons[i][j]][1],
-            z: this.z + this.radius * figure.vertices[figure.polygons[i][j]][2],
+            x: this.x + this.radius * figure.vertices[polygon][0],
+            y: this.y + this.radius * figure.vertices[polygon][1],
+            z: this.z + this.radius * figure.vertices[polygon][2],
           });
         }
-        
-        // vertices.sort((a, b) => {
-        //   if (a.z > b.z) return -1;
-        //   if (a.z < b.z) return 1;
+
+        let projectedVertices = [];
+        for (const v of vertices) {
+          projectedVertices.push(this.perspectiveProject(v));
+        }
+
+        // projectedVertices.sort((a, b) => {
+        //   if (a.z > b.z) return 1;
+        //   if (a.z < b.z) return -1;
         //   else return 0;
         // });
 
-        for (const v of vertices) {
-          let vProjected = this.perspectiveProject(v);
-          this.ctx.lineTo(vProjected.x, vProjected.y);
+        for (const v of projectedVertices) {
+          this.ctx.lineTo(v.x, v.y);
         }
-      
 
         this.ctx.closePath();
         this.ctx.strokeStyle = "#FF000F";
