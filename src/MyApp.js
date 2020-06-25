@@ -31,6 +31,7 @@ class Figures {
     this.width = width;
     this.height = height;
     this.figures = figures;
+    this.perspective=this.width * 0.8;
   }
 
   setNewValues(x, y, z) {
@@ -45,103 +46,65 @@ class Figures {
 
   // Project the 3D position into the 2D canvas
   perspectiveProject(vertex) {
-    const sizeProjection = (this.width * 0.4) / (this.width * 0.4 + vertex.z);
+    const sizeProjection = this.perspective / (this.perspective + vertex.z);
     const xProject = vertex.x * sizeProjection + this.width / 2;
     const yProject = vertex.y * sizeProjection + this.height / 2;
     return {
       size: sizeProjection,
       x: xProject,
-      y: yProject,
-      z: vertex.z
+      y: yProject
     };
   }
 
   draw() {
     for (const figure of this.figures) {
-      if (this.z < -(this.width * 0.8) + this.radius) {
+      if (this.z < -this.perspective + this.radius) {
         return;
       }
-
+      let projectedPolygons = [];
       for (let i = 0; i < figure.polygons.length; i++) {
-        this.ctx.beginPath();
+        let polygon = figure.polygons[i];
         let vertices = [];
-        for (let j = 0; j < figure.polygons[i].length; j++) {
-          let polygon = figure.polygons[i][j];
+        for (let j = 0; j < polygon.length; j++) {
+          let vertex = figure.polygons[i][j];
           vertices.push({
-            x: this.x + this.radius * figure.vertices[polygon][0],
-            y: this.y + this.radius * figure.vertices[polygon][1],
-            z: this.z + this.radius * figure.vertices[polygon][2],
+            x: this.x + this.radius * figure.vertices[vertex][0],
+            y: this.y + this.radius * figure.vertices[vertex][1],
+            z: this.z + this.radius * figure.vertices[vertex][2],
           });
         }
 
-        let projectedVertices = [];
+        let projectedPolygon = {
+          projectedVertices: [],
+          color: figure.colors[i],
+        };
+
         for (const v of vertices) {
-          projectedVertices.push(this.perspectiveProject(v));
+          projectedPolygon.projectedVertices.push(this.perspectiveProject(v));
         }
+        projectedPolygons.push(projectedPolygon);
+        
+      }
+      
+      projectedPolygons.sort((a,b)=>{
+        return Math.min(...a.projectedVertices.map(v=>v.size))-Math.min(...b.projectedVertices.map(v=>v.size))
+      })
 
-        // projectedVertices.sort((a, b) => {
-        //   if (a.z > b.z) return 1;
-        //   if (a.z < b.z) return -1;
-        //   else return 0;
-        // });
-
-        for (const v of projectedVertices) {
+      for (const p of projectedPolygons) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(p.projectedVertices[0].x, p.projectedVertices[0].y);
+        for (let i = 1; i < p.projectedVertices.length; i++) {
+          let v = p.projectedVertices[i];
           this.ctx.lineTo(v.x, v.y);
         }
-
         this.ctx.closePath();
         this.ctx.strokeStyle = "#FF000F";
         this.ctx.stroke();
-        this.ctx.fillStyle = figure.colors[i];
+        this.ctx.fillStyle = p.color;
         this.ctx.fill();
       }
     }
   }
-
-  findCenterPoint = (CUBE_VERTICES, PYRAMID_VERTICES) => {
-    let maxX = 0,
-      minX = 999999,
-      maxY = 0,
-      minY = 999999,
-      maxZ = 0,
-      minZ = 999999;
-
-    CUBE_VERTICES.map((v) => {
-      if (v[0] > maxX) maxX = v[0];
-      if (v[0] > maxY) maxY = v[0];
-      if (v[0] > maxZ) maxZ = v[0];
-
-      if (v[0] < minX) minX = v[0];
-      if (v[0] < minY) minY = v[0];
-      if (v[0] < minZ) minZ = v[0];
-      return v;
-    });
-
-    PYRAMID_VERTICES.map((v) => {
-      if (v[0] > maxX) maxX = v[0];
-      if (v[0] > maxY) maxY = v[0];
-      if (v[0] > maxZ) maxZ = v[0];
-
-      if (v[0] < minX) minX = v[0];
-      if (v[0] < minY) minY = v[0];
-      if (v[0] < minZ) minZ = v[0];
-      return v;
-    });
-
-    let centerX = 0;
-    let centerY = 0;
-
-    return {
-      x: centerX,
-      y: centerY,
-      maxX: maxX,
-      maxY: maxY,
-      maxZ: maxZ,
-      minX: minX,
-      minY: minY,
-      minZ: minZ,
-    };
-  };
 }
 
 class MyApp extends React.Component {
@@ -235,7 +198,19 @@ class MyApp extends React.Component {
           vertices: this.state.CUBE_VERTICES,
           polygons: this.state.CUBE_POLYGONS,
           colors: [
-            "#673ab7" /*front */,
+            "#000000" /*front Black*/,
+            "#ffee58" /*right Yellow*/,
+            "#66bb6a" /*back Green*/,
+            "#2196f3" /*left Blue*/,
+            "#bf360c" /*bottom Red*/,
+            "#9162e4" /*top Purple*/,
+          ],
+        },
+        {
+          vertices: this.state.TRIANGLE_VERTICES,
+          polygons: this.state.TRIANGLE_POLYGONS,
+          colors: [
+            "#000000" /*front Black*/,
             "#ffee58" /*right Yellow*/,
             "#66bb6a" /*back Green*/,
             "#2196f3" /*left Blue*/,
@@ -247,16 +222,7 @@ class MyApp extends React.Component {
     );
   }
 
-  //basic point (for tests mainly)
-  point = (x, y, canvas) => {
-    canvas.beginPath();
-    canvas.moveTo(x, y);
-    canvas.lineTo(x + 1, y + 1);
-    canvas.strokeStyle = "#FF0000";
-    canvas.stroke();
-  };
-
-  //the canvas is not located in pure 0,0 of the page, thus the starting point of the canvas is added to each value
+   //the canvas is not located in pure 0,0 of the page, thus the starting point of the canvas is added to each value
   normalize = (val, isX) => {
     return isX
       ? val + this.state.canvasCoord.x
@@ -300,8 +266,7 @@ class MyApp extends React.Component {
     if (this.state.mode === "move") {
     }
 
-    if (this.state.mode === "mirror") {
-    }
+  
 
     if (this.state.mode === "scaling") {
     }
@@ -410,20 +375,6 @@ class MyApp extends React.Component {
     this.forceUpdate();
   };
 
-  mirrorImageLeft = () => {
-    this.clearCanvas();
-
-    this.state.figures.map((one) => {
-      let flip = one.findCenterPoint();
-      if (one.x === flip.minX) {
-      } else {
-        one.x = flip.minX - one.x + flip.minX;
-      }
-    });
-
-    this.forceUpdate();
-  };
-
   //runs every second to redraw the changes on the screen
 
   render() {
@@ -512,20 +463,6 @@ class MyApp extends React.Component {
                 variant="contained"
               >
                 Move
-              </Button>
-              <Button
-                style={styles.button}
-                disabled={this.state.mode === "mirror"}
-                onClick={() =>
-                  this.setState({
-                    mode: "mirror",
-                    instruction: "Click on buttons to mirror",
-                  })
-                }
-                size="small"
-                variant="contained"
-              >
-                Mirror (not working)
               </Button>
               <Button
                 style={styles.button}
