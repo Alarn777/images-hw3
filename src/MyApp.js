@@ -57,11 +57,12 @@ class Figures {
   }
 
   draw() {
+    let projectedPolygons = [];
     for (const figure of this.figures) {
       if (this.z < -this.perspective + this.radius) {
         return;
       }
-      let projectedPolygons = [];
+      
       for (let i = 0; i < figure.polygons.length; i++) {
         let polygon = figure.polygons[i];
         let vertices = [];
@@ -85,24 +86,24 @@ class Figures {
         projectedPolygons.push(projectedPolygon);
         
       }
-      
-      projectedPolygons.sort((a,b)=>{
-        return Math.min(...a.projectedVertices.map(v=>v.size))-Math.min(...b.projectedVertices.map(v=>v.size))
-      })
+    }
 
-      for (const p of projectedPolygons) {
-        this.ctx.beginPath();
-        this.ctx.moveTo(p.projectedVertices[0].x, p.projectedVertices[0].y);
-        for (let i = 1; i < p.projectedVertices.length; i++) {
-          let v = p.projectedVertices[i];
-          this.ctx.lineTo(v.x, v.y);
-        }
-        this.ctx.closePath();
-        this.ctx.strokeStyle = "#FF000F";
-        this.ctx.stroke();
-        this.ctx.fillStyle = p.color;
-        this.ctx.fill();
+    projectedPolygons.sort((a,b)=>{
+      return Math.min(...a.projectedVertices.map(v=>v.size))-Math.min(...b.projectedVertices.map(v=>v.size))
+    })
+
+    for (const p of projectedPolygons) {
+      this.ctx.beginPath();
+      this.ctx.moveTo(p.projectedVertices[0].x, p.projectedVertices[0].y);
+      for (let i = 1; i < p.projectedVertices.length; i++) {
+        let v = p.projectedVertices[i];
+        this.ctx.lineTo(v.x, v.y);
       }
+      this.ctx.closePath();
+      this.ctx.strokeStyle = "#FF000F";
+      this.ctx.stroke();
+      this.ctx.fillStyle = p.color;
+      this.ctx.fill();
     }
   }
 }
@@ -161,10 +162,10 @@ class MyApp extends React.Component {
         [1, 5, 4, 0],
       ],
       TRIANGLE_VERTICES: [
-        [-1, -1, -2],
-        [1, -1, -1],
-        [0, 0, 1],
-        [0, 1, -1],
+        [-2, -2, -2],
+        [2, -2, -2],
+        [0, 0, 2],
+        [0, 2, -2],
       ],
       TRIANGLE_POLYGONS: [
         [0, 1, 2],
@@ -210,12 +211,10 @@ class MyApp extends React.Component {
           vertices: this.state.TRIANGLE_VERTICES,
           polygons: this.state.TRIANGLE_POLYGONS,
           colors: [
-            "#000000" /*front Black*/,
-            "#ffee58" /*right Yellow*/,
-            "#66bb6a" /*back Green*/,
-            "#2196f3" /*left Blue*/,
-            "#bf360c" /*bottom Red*/,
-            "#9162e4" /*top Purple*/,
+            "#42DB5E" ,
+            "#4C9FDB" ,
+            "#A958DB" ,
+            "#DB7486" ,
           ],
         },
       ])
