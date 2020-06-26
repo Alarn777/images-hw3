@@ -84,7 +84,7 @@ class Figures {
           projectedPolygon.projectedVertices.push(this.perspectiveProject(v));
         }
         projectedPolygons.push(projectedPolygon);
-        
+
       }
     }
 
@@ -143,7 +143,8 @@ class MyApp extends React.Component {
       PROJECTION_CENTER_X: 0, // X center of the canvas HTML
       PROJECTION_CENTER_Y: 0, // Y center of the canvas HTML
       FIELD_OF_VIEW: 0,
-      CUBE_VERTICES: [
+      CUBE_VERTICES:// [],
+          [
         [-1, -1, -1],
         [1, -1, -1],
         [-1, 1, -1],
@@ -153,7 +154,8 @@ class MyApp extends React.Component {
         [-1, 1, 1],
         [1, 1, 1],
       ],
-      CUBE_POLYGONS: [
+      CUBE_POLYGONS: //[],
+          [
         [0, 1, 3, 2],
         [1, 5, 7, 3],
         [5, 4, 6, 7],
@@ -167,7 +169,8 @@ class MyApp extends React.Component {
         [0, 0, 2],
         [0, 2, -2],
       ],
-      TRIANGLE_POLYGONS: [
+      TRIANGLE_POLYGONS: //[],
+          [
         [0, 1, 2],
         [2, 3, 1],
         [0, 3, 2],
@@ -192,6 +195,14 @@ class MyApp extends React.Component {
 
     // Store the 2D context
     let ctx = this.refs.canvas.getContext("2d");
+
+
+    //remove for production
+    this.loadFigures(ctx,canvas)
+  }
+
+  loadFigures = (ctx,canvas) => {
+    this.clearCanvas();
 
     this.state.figures.push(
       new Figures(100, 100, 200, ctx, canvas.width, canvas.height, [
@@ -219,6 +230,8 @@ class MyApp extends React.Component {
         },
       ])
     );
+
+    this.forceUpdate()
   }
 
    //the canvas is not located in pure 0,0 of the page, thus the starting point of the canvas is added to each value
@@ -230,21 +243,43 @@ class MyApp extends React.Component {
 
   //uploading and parsing the file
   showFile = async (e) => {
-    console.log("here");
-    e.preventDefault();
-    this.setState({ errorText: "" });
-    try {
-      const reader = new FileReader();
+    e.preventDefault()
+    this.setState({errorText:''})
+    try{
+      const reader = new FileReader()
       reader.onload = async (e) => {
-        const text = e.target.result;
-        let data = JSON.parse(text);
-        this.setState({ TRIANGLE_VERTICES: data.triangle.vertices });
-        //this.setState({ TRIANGLE_LINES: data.triangle.lines });
+        const text = (e.target.result)
+        // console.log(text)
+        let parsed_test = JSON.parse(text);
+        // console.log(parsed_test);
+        this.loadData(parsed_test)
       };
-    } catch (e) {
-      console.error(e);
+
+      reader.readAsText(e.target.files[0])
     }
-  };
+    catch (e) {
+      this.setState({errorText:'Error reading file'})
+    }
+  }
+
+  loadData = (data) => {
+    this.setState({
+      CUBE_VERTICES:data.cube.vertices,
+      CUBE_POLYGONS:data.cube.polygons,
+      TRIANGLE_VERTICES:data.triangle.vertices,
+      TRIANGLE_POLYGONS:data.triangle.polygons,
+    })
+
+    let canvas = ReactDOM.findDOMNode(
+        this.refs["canvas"]
+    ).getBoundingClientRect();
+
+    // Store the 2D context
+    let ctx = this.refs.canvas.getContext("2d");
+
+    this.loadFigures(ctx,canvas)
+  }
+
 
   //for the move function we need to catch the click of the mouse
   handleClickOnCanvas = (e) => {
@@ -264,8 +299,6 @@ class MyApp extends React.Component {
 
     if (this.state.mode === "move") {
     }
-
-  
 
     if (this.state.mode === "scaling") {
     }
@@ -377,6 +410,8 @@ class MyApp extends React.Component {
   //runs every second to redraw the changes on the screen
 
   render() {
+
+
     for (let i = 0; i < this.state.figures.length; i++) {
       this.state.figures[i].draw();
     }
@@ -403,8 +438,10 @@ class MyApp extends React.Component {
                   value={this.state.fileName}
                   style={{ display: "none" }}
                   type="file"
+                  accept=".json"
                   onChange={(e) => {
-                    this.setState({ fileName: e.target.value });
+                    console.log(e.target.value)
+                    // this.setState({ fileName: e.target.value });
                     this.showFile(e).then().catch();
                     this.setState({ fileName: "" });
                   }}
@@ -422,29 +459,7 @@ class MyApp extends React.Component {
                 {" "}
                 Clean Canvas
               </Button>
-              <Typography style={{ marginLeft: 20 }}>
-                Current color:{" "}
-              </Typography>
-              <div
-                style={{
-                  marginLeft: 5,
-                  height: 20,
-                  width: 20,
-                  backgroundColor: this.state.color,
-                }}
-              />
-              <Button
-                style={styles.button}
-                variant="contained"
-                component="label"
-                onClick={() => {
-                  this.setState({ colorPick: !this.state.colorPick });
-                }}
-              >
-                {" "}
-                Pick Color
-              </Button>
-
+              <div style={{marginLeft:'30%'}}/>
               <Typography style={{ marginLeft: 200 }}>
                 Choose a mode:
               </Typography>
