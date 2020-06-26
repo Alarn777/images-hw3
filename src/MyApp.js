@@ -14,106 +14,55 @@ import CardContent from "@material-ui/core/CardContent";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import IconButton from "@material-ui/core/IconButton";
-import { SwatchesPicker } from "react-color";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
 import TextField from "@material-ui/core/TextField";
+import { Scene, PROJECTION } from "./scene";
 
-class Figures {
-  constructor(x, y, z, ctx, width, height, figures) {
-    this.x = x;
-    this.y = y;
-    this.z = z;
-    this.radius = 50;
-    this.ctx = ctx;
-    this.width = width;
-    this.height = height;
-    this.figures = figures;
-    this.perspective=this.width * 0.8;
-  }
-
-  setNewValues(x, y, z) {
-    this.x = x;
-    this.z = z;
-    this.y = y;
-  }
-
-  changeRadius(rad) {
-    this.radius = rad;
-  }
-
-  // Project the 3D position into the 2D canvas
-  perspectiveProject(vertex) {
-    const sizeProjection = this.perspective / (this.perspective + vertex.z);
-    const xProject = vertex.x * sizeProjection + this.width / 2;
-    const yProject = vertex.y * sizeProjection + this.height / 2;
-    return {
-      size: sizeProjection,
-      x: xProject,
-      y: yProject
-    };
-  }
-
-  draw() {
-    let projectedPolygons = [];
-    for (const figure of this.figures) {
-      if (this.z < -this.perspective + this.radius) {
-        return;
-      }
-      
-      for (let i = 0; i < figure.polygons.length; i++) {
-        let polygon = figure.polygons[i];
-        let vertices = [];
-        for (let j = 0; j < polygon.length; j++) {
-          let vertex = figure.polygons[i][j];
-          vertices.push({
-            x: this.x + this.radius * figure.vertices[vertex][0],
-            y: this.y + this.radius * figure.vertices[vertex][1],
-            z: this.z + this.radius * figure.vertices[vertex][2],
-          });
-        }
-
-        let projectedPolygon = {
-          projectedVertices: [],
-          color: figure.colors[i],
-        };
-
-        for (const v of vertices) {
-          projectedPolygon.projectedVertices.push(this.perspectiveProject(v));
-        }
-        projectedPolygons.push(projectedPolygon);
-
-      }
-    }
-
-    projectedPolygons.sort((a,b)=>{
-      return Math.min(...a.projectedVertices.map(v=>v.size))-Math.min(...b.projectedVertices.map(v=>v.size))
-    })
-
-    for (const p of projectedPolygons) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(p.projectedVertices[0].x, p.projectedVertices[0].y);
-      for (let i = 1; i < p.projectedVertices.length; i++) {
-        let v = p.projectedVertices[i];
-        this.ctx.lineTo(v.x, v.y);
-      }
-      this.ctx.closePath();
-      this.ctx.strokeStyle = "#FF000F";
-      this.ctx.stroke();
-      this.ctx.fillStyle = p.color;
-      this.ctx.fill();
-    }
-  }
-}
-
+const WIDTH = 1400,
+  HEIGHT = 700,
+  CUBE = {
+    vertices: [
+      [-1, -1, -1],
+      [1, -1, -1],
+      [-1, 1, -1],
+      [1, 1, -1],
+      [-1, -1, 1],
+      [1, -1, 1],
+      [-1, 1, 1],
+      [1, 1, 1],
+    ],
+    polygons: [
+      [0, 1, 3, 2],
+      [1, 5, 7, 3],
+      [5, 4, 6, 7],
+      [4, 0, 2, 6],
+      [3, 7, 6, 2],
+      [1, 5, 4, 0],
+    ],
+  },
+  PYRAMID = {
+    vertices: [
+      [-2, -2, -2],
+      [2, -2, -2],
+      [0, 0, 2],
+      [0, 2, -2],
+    ],
+    polygons: [
+      [0, 1, 2],
+      [2, 3, 1],
+      [0, 3, 2],
+      [0, 3, 1],
+    ],
+  };
 class MyApp extends React.Component {
   constructor(props) {
     super(props);
-
     //state is the variable holder for the class. Each method can access and mutate the state
     this.state = {
+      projection: PROJECTION.PERSPECTIVE,
       counter: 0,
       file: "",
       offset: {
@@ -130,53 +79,32 @@ class MyApp extends React.Component {
       curves: [],
       rectangles: [],
       canvas: null,
-      mode: "not chosen",
+      mode: "spin",
       color: "#008000",
       action: "no action",
       instruction: "Choose mode to get instructions",
       errorText: "",
       fileName: "",
-      cavasSize: { y: 700, x: 1400 },
-      colorPick: false,
-      DOTS_AMOUNT: 1000, // Amount of dots on the screen
-      DOT_RADIUS: 2, // Radius of the dots
-      PROJECTION_CENTER_X: 0, // X center of the canvas HTML
-      PROJECTION_CENTER_Y: 0, // Y center of the canvas HTML
-      FIELD_OF_VIEW: 0,
-      CUBE_VERTICES:// [],
-          [
-        [-1, -1, -1],
-        [1, -1, -1],
-        [-1, 1, -1],
-        [1, 1, -1],
-        [-1, -1, 1],
-        [1, -1, 1],
-        [-1, 1, 1],
-        [1, 1, 1],
-      ],
-      CUBE_POLYGONS: //[],
-          [
-        [0, 1, 3, 2],
-        [1, 5, 7, 3],
-        [5, 4, 6, 7],
-        [4, 0, 2, 6],
-        [3, 7, 6, 2],
-        [1, 5, 4, 0],
-      ],
-      TRIANGLE_VERTICES: [
-        [-2, -2, -2],
-        [2, -2, -2],
-        [0, 0, 2],
-        [0, 2, -2],
-      ],
-      TRIANGLE_POLYGONS: //[],
-          [
-        [0, 1, 2],
-        [2, 3, 1],
-        [0, 3, 2],
-        [0, 3, 1],
-      ],
-      figures: [],
+      cavasSize: { x: WIDTH, y: HEIGHT },
+      scene: new Scene(100, 100, 200, WIDTH, HEIGHT, [
+        {
+          vertices: CUBE.vertices,
+          polygons: CUBE.polygons,
+          colors: [
+            "#000000" /*front Black*/,
+            "#ffee58" /*right Yellow*/,
+            "#66bb6a" /*back Green*/,
+            "#2196f3" /*left Blue*/,
+            "#bf360c" /*bottom Red*/,
+            "#9162e4" /*top Purple*/,
+          ],
+        },
+        // {
+        //   vertices: PYRAMID.vertices,
+        //   polygons: PYRAMID.polygons,
+        //   colors: ["#42DB5E", "#4C9FDB", "#A958DB", "#DB7486"],
+        // },
+      ]),
       spinMode: "x",
       spinAngle: 0,
     };
@@ -193,48 +121,10 @@ class MyApp extends React.Component {
       canvasCoord: { x: Math.floor(canvas.x), y: Math.floor(canvas.y) },
     });
 
-    // Store the 2D context
-    let ctx = this.refs.canvas.getContext("2d");
-
-
-    //remove for production
-    this.loadFigures(ctx,canvas)
+    //    this.state.scene.setCtx(this.refs.canvas.getContext("2d"));
   }
 
-  loadFigures = (ctx,canvas) => {
-    this.clearCanvas();
-
-    this.state.figures.push(
-      new Figures(100, 100, 200, ctx, canvas.width, canvas.height, [
-        {
-          vertices: this.state.CUBE_VERTICES,
-          polygons: this.state.CUBE_POLYGONS,
-          colors: [
-            "#000000" /*front Black*/,
-            "#ffee58" /*right Yellow*/,
-            "#66bb6a" /*back Green*/,
-            "#2196f3" /*left Blue*/,
-            "#bf360c" /*bottom Red*/,
-            "#9162e4" /*top Purple*/,
-          ],
-        },
-        {
-          vertices: this.state.TRIANGLE_VERTICES,
-          polygons: this.state.TRIANGLE_POLYGONS,
-          colors: [
-            "#42DB5E" ,
-            "#4C9FDB" ,
-            "#A958DB" ,
-            "#DB7486" ,
-          ],
-        },
-      ])
-    );
-
-    this.forceUpdate()
-  }
-
-   //the canvas is not located in pure 0,0 of the page, thus the starting point of the canvas is added to each value
+  //the canvas is not located in pure 0,0 of the page, thus the starting point of the canvas is added to each value
   normalize = (val, isX) => {
     return isX
       ? val + this.state.canvasCoord.x
@@ -242,69 +132,47 @@ class MyApp extends React.Component {
   };
 
   //uploading and parsing the file
-  showFile = async (e) => {
-    e.preventDefault()
-    this.setState({errorText:''})
-    try{
-      const reader = new FileReader()
+  loadFile = async (e) => {
+    e.preventDefault();
+    this.setState({ errorText: "" });
+    try {
+      const reader = new FileReader();
       reader.onload = async (e) => {
-        const text = (e.target.result)
-        // console.log(text)
-        let parsed_test = JSON.parse(text);
-        // console.log(parsed_test);
-        this.loadData(parsed_test)
+        const text = e.target.result;
+        let figures = JSON.parse(text);
+        this.clearCanvas();
+        this.setState({
+          scene: new Scene(100, 100, 200, WIDTH, HEIGHT, figures),
+        });
+        
+        this.state.scene.setCtx(this.refs.canvas.getContext("2d"))
+
+        this.forceUpdate();
       };
 
-      reader.readAsText(e.target.files[0])
+      reader.readAsText(e.target.files[0]);
+    } catch (e) {
+      this.setState({ errorText: "Error reading file" });
     }
-    catch (e) {
-      this.setState({errorText:'Error reading file'})
-    }
-  }
+  };
 
-  loadData = (data) => {
-    this.setState({
-      CUBE_VERTICES:data.cube.vertices,
-      CUBE_POLYGONS:data.cube.polygons,
-      TRIANGLE_VERTICES:data.triangle.vertices,
-      TRIANGLE_POLYGONS:data.triangle.polygons,
-    })
-
-    let canvas = ReactDOM.findDOMNode(
-        this.refs["canvas"]
-    ).getBoundingClientRect();
-
-    // Store the 2D context
-    let ctx = this.refs.canvas.getContext("2d");
-
-    this.loadFigures(ctx,canvas)
-  }
-
+  
 
   //for the move function we need to catch the click of the mouse
   handleClickOnCanvas = (e) => {
     let x = e.clientX; // Get the horizontal coordinate
     let y = e.clientY; // Get the vertical coordinate
 
-    x = x - this.state.canvasCoord.x - 700;
-    y = y - this.state.canvasCoord.y - 350;
+    this.state.scene.x = x - this.state.canvasCoord.x - WIDTH / 2;
+    this.state.scene.y = y - this.state.canvasCoord.y - HEIGHT / 2;
 
-    this.state.figures.map((v) => {
-      v.setNewValues(x, y, v.z);
-      return v;
-    });
+    // this.setState((prevState) => ({
+    //   ...prevState,
+    //   scene: { ...prevState.scene, x: x, y: y },
+    // }));
 
     this.clearCanvas();
     this.forceUpdate();
-
-    if (this.state.mode === "move") {
-    }
-
-    if (this.state.mode === "scaling") {
-    }
-
-    if (this.state.mode === "spin") {
-    }
   };
 
   //cean the canvas from everything
@@ -312,7 +180,12 @@ class MyApp extends React.Component {
     this.refs.canvas.getContext("2d").beginPath();
     this.refs.canvas
       .getContext("2d")
-      .clearRect(0, 0, this.normalize(1400, true), this.normalize(700, false));
+      .clearRect(
+        0,
+        0,
+        this.normalize(WIDTH, true),
+        this.normalize(HEIGHT, false)
+      );
   };
 
   scaling = (action, number) => {
@@ -326,24 +199,22 @@ class MyApp extends React.Component {
       factor = 0.9;
     }
 
-    this.state.figures[0].radius = this.state.figures[0].radius * factor;
+    this.state.scene.radius = this.state.scene.radius * factor;
 
     this.forceUpdate();
   };
 
   //spinning the figure by finding the center point and then performing trigonometric computation on each point in the drawing
-  spinFigure = (mode, explicit_angle, axis) => {
-    let angle = 0;
-    explicit_angle = this.state.spinAngle;
+  spinFigure = (mode) => {
+    let angle = 1;
+
     const direction = mode === "right" ? 1 : -1;
-    angle = explicit_angle !== 0 ? explicit_angle : 5 * direction;
+    angle = this.state.spinAngle !== 0 ? this.state.spinAngle : 5 * direction;
 
     let asix1 = 0;
     let asix2 = 1;
 
-    axis = this.state.spinMode;
-
-    switch (axis) {
+    switch (this.state.spinMode) {
       case "z":
         asix1 = 0;
         asix2 = 1;
@@ -373,26 +244,9 @@ class MyApp extends React.Component {
     let x = 0,
       y = 0;
 
-    this.state.CUBE_VERTICES.map((v) => {
+    this.state.scene.sceneVertices.map((v) => {
       x = v[asix1];
       y = v[asix2];
-      v[asix1] =
-        centerX +
-        (x - centerX) * Math.cos(newAngle) -
-        (y - centerY) * Math.sin(newAngle);
-      v[asix2] =
-        centerY +
-        (x - centerX) * Math.sin(newAngle) +
-        (y - centerY) * Math.cos(newAngle);
-      return v;
-    });
-
-    x = 0;
-    y = 0;
-    this.state.TRIANGLE_VERTICES.map((v) => {
-      x = v[asix1];
-      y = v[asix2];
-
       v[asix1] =
         centerX +
         (x - centerX) * Math.cos(newAngle) -
@@ -410,11 +264,8 @@ class MyApp extends React.Component {
   //runs every second to redraw the changes on the screen
 
   render() {
-
-
-    for (let i = 0; i < this.state.figures.length; i++) {
-      this.state.figures[i].draw();
-    }
+    if (this.state.scene.ctx !== null)
+      this.state.scene.draw(this.state.projection);
 
     return (
       <div className="App">
@@ -440,9 +291,7 @@ class MyApp extends React.Component {
                   type="file"
                   accept=".json"
                   onChange={(e) => {
-                    console.log(e.target.value)
-                    // this.setState({ fileName: e.target.value });
-                    this.showFile(e).then().catch();
+                    this.loadFile(e).then().catch();
                     this.setState({ fileName: "" });
                   }}
                 />
@@ -459,10 +308,56 @@ class MyApp extends React.Component {
                 {" "}
                 Clean Canvas
               </Button>
-              <div style={{marginLeft:'30%'}}/>
-              <Typography style={{ marginLeft: 200 }}>
-                Choose a mode:
-              </Typography>
+              <div style={{ marginLeft: "10%" }} />
+              <Typography>Projection:</Typography>
+              <Button
+                style={
+                  this.state.projection === PROJECTION.PERSPECTIVE
+                    ? styles.buttonActive
+                    : styles.button
+                }
+                variant="contained"
+                component="label"
+                onClick={() => {
+                  this.clearCanvas();
+                  this.setState({ projection: PROJECTION.PERSPECTIVE });
+                }}
+              >
+                {" "}
+                Perspective
+              </Button>
+              <Button
+                style={
+                  this.state.projection === PROJECTION.PARALLEL_ORTHOGONAL
+                    ? styles.buttonActive
+                    : styles.button
+                }
+                variant="contained"
+                component="label"
+                onClick={() => {
+                  this.clearCanvas();
+                  this.setState({ projection: PROJECTION.PARALLEL_ORTHOGONAL });
+                }}
+              >
+                Orthogonal
+              </Button>
+              <Button
+                style={
+                  this.state.projection === PROJECTION.PARALLEL_OBLIQUE
+                    ? styles.buttonActive
+                    : styles.button
+                }
+                variant="contained"
+                component="label"
+                onClick={() => {
+                  this.clearCanvas();
+                  this.setState({ projection: PROJECTION.PARALLEL_OBLIQUE });
+                }}
+              >
+                OBLIQUE
+              </Button>
+              <div style={{ marginLeft: "10%" }} />
+              <Typography> Mode: </Typography>
               <Button
                 style={styles.button}
                 disabled={this.state.mode === "move"}
@@ -508,51 +403,16 @@ class MyApp extends React.Component {
               </Button>
             </Toolbar>
           </AppBar>
-          {this.state.colorPick ? (
-            <div style={styles.picker.popover}>
-              <div
-                style={styles.picker.cover}
-                onClick={() => this.setState({ colorPick: false })}
-              />
-              <SwatchesPicker
-                color={this.state.color}
-                onChangeComplete={(color) => {
-                  this.setState({
-                    color: color.hex,
-                    colorPick: !this.state.colorPick,
-                  });
-                  this.clearCanvas();
-                  this.renderOnCanvas();
-                }}
-              />
-            </div>
-          ) : null}
-
           <Card>
             <CardActionArea>
-              <CardContent>
-                <Typography gutterBottom variant="h5" component="h2">
-                  Current mode: {this.state.mode}
-                </Typography>
-                <Typography gutterBottom variant="body1" component="h2">
-                  {this.state.instruction}
-                </Typography>
-                <Typography
-                  style={{ color: "red" }}
-                  gutterBottom
-                  variant="body1"
-                  component="h2"
-                >
-                  {this.state.errorText}
-                </Typography>
-              </CardContent>
+              <CardContent></CardContent>
             </CardActionArea>
             <canvas
               id="scene"
               ref="canvas"
               style={styles.board}
-              height={700}
-              width={1400}
+              height={HEIGHT}
+              width={WIDTH}
               onClick={(e) => this.handleClickOnCanvas(e)}
             />
 
@@ -581,52 +441,9 @@ class MyApp extends React.Component {
               <div />
             )}
 
-            {this.state.mode === "mirror" ? (
-              <div>
-                <Button
-                  style={{ margin: 10 }}
-                  onClick={() => this.mirrorImageLeft()}
-                  size="small"
-                  variant="contained"
-                  color="primary"
-                >
-                  Left
-                </Button>
-                <Button
-                  style={{ margin: 10 }}
-                  onClick={() => this.mirrorImageRight()}
-                  size="small"
-                  variant="contained"
-                  color="primary"
-                >
-                  Right
-                </Button>
-                <Button
-                  style={{ margin: 10 }}
-                  onClick={() => this.mirrorImage()}
-                  size="small"
-                  variant="contained"
-                  color="primary"
-                >
-                  Bottom
-                </Button>
-                <Button
-                  style={{ margin: 10 }}
-                  onClick={() => this.mirrorImageTop()}
-                  size="small"
-                  variant="contained"
-                  color="primary"
-                >
-                  Top
-                </Button>
-              </div>
-            ) : (
-              <div />
-            )}
-
             {this.state.mode === "spin" ? (
               <div>
-                <FormControl style={{ margin: 10, minWidth: 120 }}>
+                <FormControl style={{ margin: 10 }}>
                   <InputLabel id="demo-simple-select-label">Axis</InputLabel>
                   <Select
                     labelId="demo-simple-select-label"
@@ -639,38 +456,43 @@ class MyApp extends React.Component {
                     <MenuItem value={"z"}>Z</MenuItem>
                   </Select>
                 </FormControl>
+                <FormControl style={{ margin: 10 }}>
+                  <Typography>Rotate</Typography>
+                  <Button
+                    style={{ margin: 5 }}
+                    onClick={() => this.spinFigure("left")}
+                    size="small"
+                    variant="contained"
+                    color="primary"
+                  >
+                    {this.state.spinMode === "x" ? "up" : "right"}
+                  </Button>
 
-                <Button
-                  style={{ margin: 25 }}
-                  onClick={() => this.spinFigure("right", 0, "x")}
-                  size="small"
-                  variant="contained"
-                  color="primary"
-                >
-                  Spin
-                </Button>
-                {/*<Button style={{margin:25}} onClick={() =>*/}
-                {/*    this.spinFigure('left',0,'x')}*/}
-                {/*        size="small"*/}
-                {/*        variant='contained'*/}
-                {/*        color="primary">*/}
-                {/*    Opposite Direction*/}
-                {/*</Button>*/}
+                  <Button
+                    style={{ margin: 5 }}
+                    onClick={() => this.spinFigure("right")}
+                    size="small"
+                    variant="contained"
+                    color="primary"
+                  >
+                    {this.state.spinMode === "x" ? "down" : "left"}
+                  </Button>
 
-                <TextField
-                  style={{ margin: 10 }}
-                  id="standard-number"
-                  label="Custom angle"
-                  type="number"
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                  value={this.state.spinAngle}
-                  onChange={(e) => {
-                    console.log(e.target.value);
-                    this.setState({ spinAngle: e.target.value });
-                  }}
-                />
+                  <TextField
+                    style={{ margin: 10 }}
+                    id="standard-number"
+                    label="Custom angle"
+                    type="number"
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                    value={this.state.spinAngle}
+                    onChange={(e) => {
+                      console.log(e.target.value);
+                      this.setState({ spinAngle: e.target.value });
+                    }}
+                  />
+                </FormControl>
               </div>
             ) : (
               <div />
@@ -691,6 +513,10 @@ const styles = {
   button: {
     marginLeft: 10,
   },
+  buttonActive: {
+    marginLeft: 10,
+    backgroundColor: "#ffb700",
+  },
   picker: {
     popover: {
       position: "absolute",
@@ -705,8 +531,8 @@ const styles = {
   },
   board: {
     margin: "0 auto",
-    height: 700,
-    width: 1400,
+    height: HEIGHT,
+    width: WIDTH,
     webkitBoxShadow: "1px 3px 1px #9E9E9E",
     mozBoxShadow: "1px 3px 1px #9E9E9E",
     boxShadow: "1px 1px 5px 5px #9E9E9E",
